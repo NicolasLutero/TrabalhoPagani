@@ -1,3 +1,5 @@
 /.venv/
 /tests/unit/persistencia/mensageria.log
 /tests/unit/persistencia/config.json
+/venv
+__pycache__
