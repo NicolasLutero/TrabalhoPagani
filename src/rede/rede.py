@@ -4,7 +4,6 @@ import socket
 from typing import Tuple
 import threading
 
-
 def formatar_para_json(res_cripto):
     pacote_json = {
         "mensagem_cifrada": base64.b64encode(res_cripto["mensagem_cifrada"]).decode('utf-8'),
@@ -29,23 +28,24 @@ def reconstruir_pacote_original(dados_brutos):
 
 
 class Peer:
-    def __init__(self):
+    def __init__(self, mensageria):
         self._socket_escuta = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._rodando = False
+        self._mensageria = mensageria
 
     def iniciar(self):
         self._rodando = True
-        self._thread_servidor = threading.Thread(target=self._loop_escuta, daemon=True)
+        self._thread_servidor = threading.Thread(target=self._loop_escuta)
         self._thread_servidor.start()
 
     def _loop_escuta(self):
         self._socket_escuta.bind(('0.0.0.0', 6767))
         self._socket_escuta.listen(5)
 
-        while self.rodando:
+        while self._rodando:
             try:
                 conn, addr = self._socket_escuta.accept()
-                threading.Thread(target=self._lidar_com_conexao, args=(conn, addr), daemon=True).start()
+                threading.Thread(target=self._lidar_com_conexao, args=(conn, addr)).start()
             except Exception as e:
                 print(f"Erro no accept: {e}")
 
@@ -59,12 +59,12 @@ class Peer:
                 if not dados_brutos: return
 
                 pacote_original = reconstruir_pacote_original(dados_brutos)
-                # mensageria.sla_oq(pacote_original)
+                self._mensageria.receive_message(pacote_original)
                     
             except Exception as e:
                 print(f"Erro ao processar mensagem de {addr}: {e}")            
 
-    def enviar_para(self, endereco_destinatario: Tuple[str, int], pacote_criptografado):
+    def enviar_para(self, endereco_destinatario, pacote_criptografado):
         pacote_envio_json = formatar_para_json(pacote_criptografado)
 
         try:
