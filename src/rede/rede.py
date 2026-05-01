@@ -11,7 +11,7 @@ def formatar_para_json(res_cripto):
         "iv": base64.b64encode(res_cripto["iv"]).decode('utf-8'),
         "assinatura": base64.b64encode(res_cripto["assinatura"]).decode('utf-8')
     }
-    
+
     return json.dumps(pacote_json, indent=4)
 
 def reconstruir_pacote_original(dados_brutos):
@@ -59,10 +59,10 @@ class Peer:
                 if not dados_brutos: return
 
                 pacote_original = reconstruir_pacote_original(dados_brutos)
-                self._mensageria.receive_message(pacote_original)
-                    
+                self._mensageria.receive_message(addr, pacote_original)
+
             except Exception as e:
-                print(f"Erro ao processar mensagem de {addr}: {e}")            
+                print(f"Erro ao processar mensagem de {addr}: {e}")
 
     def enviar_para(self, endereco_destinatario, pacote_criptografado):
         pacote_envio_json = formatar_para_json(pacote_criptografado)
@@ -77,4 +77,3 @@ class Peer:
 
         except Exception as e:
             print(f"Ocorreu um erro no envio: {e}")
-

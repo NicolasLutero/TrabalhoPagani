@@ -1,4 +1,5 @@
 import os
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -130,3 +131,34 @@ def decriptar_fim_a_fim(pacote_rede, prk_destinatario, puk_remetente):
         raise ValueError("A assinatura é inválida ou a mensagem foi adulterada")
 
     return mensagem_bytes.decode('utf-8')
+
+
+def serializar_chave_rsa(puk, prk):
+    puk_bytes = puk.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    puk_string = puk_bytes.decode("utf-8")
+
+    prk_bytes = prk.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+    prk_string = prk_bytes.decode("utf-8")
+
+    return puk_string, prk_string
+
+
+def desserializar_chave_publica_rsa(puk_string):
+    puk = serialization.load_pem_public_key(
+        puk_string.encode("utf-8")
+    )
+    return puk
+
+def desserializar_chave_privada_rsa(prk_string):
+    prk = serialization.load_pem_private_key(
+        prk_string.encode("utf-8"),
+        password=None
+    )
+    return prk
